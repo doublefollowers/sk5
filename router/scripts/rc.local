@@ -1,0 +1,41 @@
+#!/bin/sh
+# increase file descriptor limit
+ulimit -n 65535
+
+# tproxy routing
+ip rule add fwmark 1 table 100 2>/dev/null
+ip route add local 0.0.0.0/0 dev lo table 100 2>/dev/null
+
+# sing-box tproxy transparent proxy
+nohup sing-box run -c /etc/sing-box/config.json > /var/log/sing-box.log 2>&1 &
+sleep 2
+
+# iptables mangle chain
+iptables -t mangle -N SINGBOX 2>/dev/null
+iptables -t mangle -F SINGBOX
+
+# Block QUIC (UDP 443)
+iptables -t mangle -A SINGBOX -p udp --dport 443 -j DROP
+
+# DNS hijack
+iptables -t mangle -A SINGBOX -p udp --dport 53 -j TPROXY --on-port 12345 --tproxy-mark 1
+iptables -t mangle -A SINGBOX -p tcp --dport 53 -j TPROXY --on-port 12345 --tproxy-mark 1
+
+# skip private addresses
+iptables -t mangle -A SINGBOX -d 0.0.0.0/8 -j RETURN
+iptables -t mangle -A SINGBOX -d 10.0.0.0/8 -j RETURN
+iptables -t mangle -A SINGBOX -d 127.0.0.0/8 -j RETURN
+iptables -t mangle -A SINGBOX -d 169.254.0.0/16 -j RETURN
+iptables -t mangle -A SINGBOX -d 172.16.0.0/12 -j RETURN
+iptables -t mangle -A SINGBOX -d 192.168.0.0/16 -j RETURN
+iptables -t mangle -A SINGBOX -d 224.0.0.0/4 -j RETURN
+iptables -t mangle -A SINGBOX -d 240.0.0.0/4 -j RETURN
+
+# tproxy TCP + UDP
+iptables -t mangle -A SINGBOX -p tcp -j TPROXY --on-port 12345 --tproxy-mark 1
+iptables -t mangle -A SINGBOX -p udp -j TPROXY --on-port 12345 --tproxy-mark 1
+
+# apply to device
+iptables -t mangle -A PREROUTING -s 192.168.66.105 -j SINGBOX
+
+exit 0

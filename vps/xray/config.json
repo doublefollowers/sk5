@@ -1,0 +1,70 @@
+{
+  "log": {"loglevel": "warning"},
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "72ff96dd-0dda-4757-bca4-f8cd9b9e5ef6",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "dest": "www.speedtest.net:443",
+          "serverNames": [
+            "www.speedtest.net",
+            "www.homedepot.com",
+            "www.nvidia.com",
+            "www.mayoclinic.org",
+            "www.ucla.edu"
+          ],
+          "privateKey": "gPrADBEHYK076BmGcvkhR2gXezxB0FdRB3LXbCMJkik",
+          "shortIds": ["9aea47c4c738b641"]
+        },
+        "sockopt": {
+          "tcpKeepAliveInterval": 30,
+          "tcpFastOpen": true
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls", "quic"]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "socks",
+      "tag": "kookeey",
+      "settings": {
+        "servers": [
+          {
+            "address": "gate-sea.kookeey.info",
+            "port": 1000,
+            "users": [
+              {
+                "user": "6458952-bcc9e8fa",
+                "pass": "c51094ec-US-32987325-2m"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "sockopt": {
+          "tcpKeepAliveInterval": 30,
+          "tcpFastOpen": true
+        }
+      }
+    },
+    {"protocol": "freedom", "tag": "direct"}
+  ]
+}
